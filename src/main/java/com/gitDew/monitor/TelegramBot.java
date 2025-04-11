@@ -3,7 +3,6 @@ package com.gitDew.monitor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -34,9 +33,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         User user = update.getMessage().getFrom();
 
         logger.info("Update received from {}: {}", user.getFirstName(), update);
-
-        polygonService.getMarkets();;
-
 
         SendMessage msg = SendMessage.builder()
                 .chatId(String.valueOf(user.getId()))

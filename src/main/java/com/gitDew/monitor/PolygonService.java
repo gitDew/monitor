@@ -1,10 +1,9 @@
 package com.gitDew.monitor;
 
 import io.polygon.kotlin.sdk.rest.PolygonRestClient;
+import io.polygon.kotlin.sdk.rest.reference.MarketsDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import io.polygon.kotlin.sdk.rest.reference.*;
 
 @Service
 public class PolygonService {
@@ -13,8 +12,6 @@ public class PolygonService {
     String polygonKey;
 
     public void getMarkets() {
-        // TODO move key to properties file
-        // String polygonKey = System.getenv("POLYGON_API_KEY");
         if (polygonKey == null || polygonKey.isEmpty()) {
             System.err.println("Make sure you set your polygon API key in the POLYGON_API_KEY environment variable!");
             System.exit(1);
