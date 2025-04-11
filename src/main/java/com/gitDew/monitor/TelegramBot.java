@@ -15,7 +15,6 @@ public class TelegramBot extends TelegramLongPollingBot {
   private static final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
 
   private final String telegramToken;
-  private final PolygonService polygonService;
   private final CommandHandler commandHandler;
 
 
@@ -49,7 +48,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     try {
       execute(msg);
     } catch (TelegramApiException e) {
-      logger.error("Error while sending response message: {}", e);
+      logger.error("Error while sending response message: ", e);
     }
   }
 }

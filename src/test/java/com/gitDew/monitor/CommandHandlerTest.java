@@ -1,12 +1,25 @@
 package com.gitDew.monitor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class CommandHandlerTest {
 
-  private final CommandHandler objUnderTest = new CommandHandler();
+  @Mock
+  private PolygonService polygonService;
+
+  @InjectMocks
+  private CommandHandler objUnderTest;
 
   @Test
   void emptyCommand() {
@@ -17,10 +30,12 @@ class CommandHandlerTest {
 
   @Test
   void rsi() {
-    assertThat(objUnderTest.handle("rsi")).isEqualTo("Usage: rsi <timeframe> <symbol>");
-    assertThat(objUnderTest.handle("rsi 15m GOOG")).isEqualTo(
-        "Calculating RSI for goog on timeframe 15m");
-    assertThat(objUnderTest.handle("RSI 15m GOOG")).isEqualTo(
-        "Calculating RSI for goog on timeframe 15m");
+    when(polygonService.getLastRsi(anyString(), anyInt(), any())).thenReturn(12.34);
+    assertThat(objUnderTest.handle("rsi")).isEqualTo(
+        "Usage: rsi <window> <timespan> <symbol>, e.g. rsi 15 minute GOOG");
+    assertThat(objUnderTest.handle("rsi 15 minute GOOG")).isEqualTo(
+        "Last RSI for GOOG on timeframe 15 minute: 12.34");
+    assertThat(objUnderTest.handle("RSI 15 minute GOOG")).isEqualTo(
+        "Last RSI for GOOG on timeframe 15 minute: 12.34");
   }
 }
