@@ -12,37 +12,44 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @RequiredArgsConstructor
 public class TelegramBot extends TelegramLongPollingBot {
 
-    private static final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
+  private static final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
 
-    private final String telegramToken;
-    private final PolygonService polygonService;
+  private final String telegramToken;
+  private final PolygonService polygonService;
+  private final CommandHandler commandHandler;
 
 
-    @Override
-    public String getBotUsername() {
-        return "MONItor";
+  @Override
+  public String getBotUsername() {
+    return "MONItor";
+  }
+
+  @Override
+  public String getBotToken() {
+    return telegramToken;
+  }
+
+  @Override
+  public void onUpdateReceived(Update update) {
+    User user = update.getMessage().getFrom();
+
+    logger.info("Update received from {}: {}", user.getFirstName(), update);
+
+    String response = commandHandler.handle(update.getMessage().getText());
+
+    sendResponse(user, response);
+  }
+
+  private void sendResponse(User user, String response) {
+    SendMessage msg = SendMessage.builder()
+        .chatId(String.valueOf(user.getId()))
+        .text(response)
+        .build();
+
+    try {
+      execute(msg);
+    } catch (TelegramApiException e) {
+      logger.error("Error while sending response message: {}", e);
     }
-
-    @Override
-    public String getBotToken() {
-        return telegramToken;
-    }
-
-    @Override
-    public void onUpdateReceived(Update update) {
-        User user = update.getMessage().getFrom();
-
-        logger.info("Update received from {}: {}", user.getFirstName(), update);
-
-        SendMessage msg = SendMessage.builder()
-                .chatId(String.valueOf(user.getId()))
-                .text(update.getMessage().getText().toUpperCase())
-                .build();
-
-        try {
-            execute(msg);
-        } catch (TelegramApiException e) {
-            logger.error("Error while sending response message: {}", e);
-        }
-    }
+  }
 }

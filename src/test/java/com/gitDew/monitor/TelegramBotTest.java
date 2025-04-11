@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 class TelegramBotTest {
 
-  private final TelegramBot objUnderTest = new TelegramBot("testToken", null);
+  private final TelegramBot objUnderTest = new TelegramBot("testToken", null, null);
 
   @Test
   void getBotUsername() {
