@@ -29,10 +29,16 @@ public class TelegramBot extends TelegramLongPollingBot {
   @Override
   public void onUpdateReceived(Update update) {
     User user = update.getMessage().getFrom();
+    String text = update.getMessage().getText();
 
     log.info("Update received from {}: {}", user.getFirstName(), update);
 
-    String response = commandHandler.handle(update.getMessage().getText(), toDomainUser(user));
+    String response;
+    if ("/start".equals(text)) {
+      response = "Welcome to \uD83D\uDDA5\uFE0F<b>MONItor</b>! Type <b>help</b> to get started.";
+    } else {
+      response = commandHandler.handle(text, toDomainUser(user));
+    }
 
     sendResponse(user, response);
   }
