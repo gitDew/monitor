@@ -1,8 +1,7 @@
 package com.gitDew.monitor;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -10,9 +9,8 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class TelegramBot extends TelegramLongPollingBot {
-
-  private static final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
 
   private final String telegramToken;
   private final CommandHandler commandHandler;
@@ -32,7 +30,7 @@ public class TelegramBot extends TelegramLongPollingBot {
   public void onUpdateReceived(Update update) {
     User user = update.getMessage().getFrom();
 
-    logger.info("Update received from {}: {}", user.getFirstName(), update);
+    log.info("Update received from {}: {}", user.getFirstName(), update);
 
     String response = commandHandler.handle(update.getMessage().getText(), toDomainUser(user));
 
@@ -48,15 +46,17 @@ public class TelegramBot extends TelegramLongPollingBot {
   }
 
   private void sendResponse(User user, String response) {
+    log.info("Sending message to {}: {}", user.getFirstName(), response);
     SendMessage msg = SendMessage.builder()
         .chatId(String.valueOf(user.getId()))
         .text(response)
+        .parseMode("HTML")
         .build();
 
     try {
       execute(msg);
     } catch (TelegramApiException e) {
-      logger.error("Error while sending response message: ", e);
+      log.error("Error while sending response message: ", e);
     }
   }
 }

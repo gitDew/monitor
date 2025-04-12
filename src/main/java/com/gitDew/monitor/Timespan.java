@@ -1,6 +1,7 @@
 package com.gitDew.monitor;
 
 import java.util.Arrays;
+import java.util.List;
 
 public enum Timespan {
   MINUTE("1m"),
@@ -23,6 +24,10 @@ public enum Timespan {
         .filter(t -> t.code.equalsIgnoreCase(code)).findFirst().orElseThrow(
             () -> new IllegalArgumentException("Couldn't parse timespan code.")
         );
+  }
+
+  public static List<String> allCodes() {
+    return Arrays.stream(Timespan.values()).map(Timespan::toString).toList();
   }
 
   @Override

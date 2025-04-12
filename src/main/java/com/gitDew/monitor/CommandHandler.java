@@ -1,18 +1,19 @@
 package com.gitDew.monitor;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommandHandler {
 
-  private static final String COMMAND_NOT_RECOGNIZED = "Command not recognized.";
-  private static final String RSI_USAGE_HELP = "Usage: rsi <timespan> <symbol>, e.g. rsi 15m GOOG";
+  private static final String COMMAND_NOT_RECOGNIZED = "Command not recognized.\n\nPlease type <b>help</b> to see all available commands.";
   private final AlertService alertService;
 
   public String handle(String cmd, DomainUser user) {
-    if (cmd == null || cmd.isBlank()) {
+    if (cmd == null || cmd.isBlank() || cmd.length() > 50) {
       return COMMAND_NOT_RECOGNIZED;
     }
 
@@ -20,15 +21,22 @@ public class CommandHandler {
 
     String[] args = cmd.split(" ");
 
-    return switch (args[0]) {
-      case "rsi" -> handleRsi(args, user);
-      default -> COMMAND_NOT_RECOGNIZED;
+    Command command;
+    try {
+      command = Command.from(args[0]);
+    } catch (IllegalArgumentException e) {
+      return COMMAND_NOT_RECOGNIZED;
+    }
+
+    return switch (command.getCommandTag()) {
+      case RSI -> handleRSI(command, args, user);
+      case HELP -> command.helpMessage();
     };
   }
 
-  private String handleRsi(String[] args, DomainUser user) {
+  private String handleRSI(Command cmd, String[] args, DomainUser user) {
     if (args.length != 3) {
-      return RSI_USAGE_HELP;
+      return cmd.helpMessage();
     }
 
     try {
@@ -36,13 +44,18 @@ public class CommandHandler {
       String ticker = args[2].toUpperCase();
 
       alertService.subscribeRSI(user, ticker, timespan);
-      return String.format("Successfully subscribed to RSI for %s %s", ticker, timespan);
+
+      log.info("Successfully subscribed {} to RSI for {} {}", user.getName(), ticker, timespan);
+      return String.format("Successfully subscribed to RSI for <code>%s %s</code>", ticker,
+          timespan);
 
     } catch (IllegalArgumentException e) {
-      return RSI_USAGE_HELP;
+      return cmd.helpMessage();
     } catch (ExternalApiException e) {
-      return String.format("Error when trying to fetch RSI data: %s", e);
+      log.error("Error trying to fetch the RSI data from the API: {}", e.getMessage());
+      return "Something went wrong trying to fetch the RSI data. Sorry!";
     }
   }
+
 
 }

@@ -26,7 +26,6 @@ public class AlertService {
 
   public void subscribeRSI(DomainUser user, String ticker, Timespan timespan)
       throws ExternalApiException {
-    // TODO retrieve available symbols once on startup and check if it exists?
     financialApi.getLastRsi(ticker, timespan);
     jobQueue.add(() -> checkRSI(user, ticker, timespan));
   }
@@ -38,8 +37,8 @@ public class AlertService {
         RSI_ALERT_MAX_THRESHOLD) > 0) {
       user.sendResponse(
           String.format(
-              "\uD83D\uDEA8 Alert triggered: RSI for %s %s is at %.2f. Alert subscription cleared.",
-              ticker, timespan,
+              "@%s \uD83D\uDEA8 <b>Alert triggered</b>: RSI for <code>%s %s</code> is at %.2f.\n\nAlert subscription cleared.",
+              user.getName(), ticker, timespan,
               lastRsi));
       return;
     }
