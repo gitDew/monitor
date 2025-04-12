@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AlertService {
 
-  private static final int RSI_ALERT_MIN_THRESHOLD = 30;
-  private static final int RSI_ALERT_MAX_THRESHOLD = 70;
+  public static final int RSI_ALERT_MIN_THRESHOLD = 30;
+  public static final int RSI_ALERT_MAX_THRESHOLD = 70;
 
   private final FinancialApi financialApi;
   private final Queue<Runnable> jobQueue = new LinkedList<>();

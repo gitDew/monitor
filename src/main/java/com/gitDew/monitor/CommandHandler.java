@@ -46,8 +46,13 @@ public class CommandHandler {
       alertService.subscribeRSI(user, ticker, timespan);
 
       log.info("Successfully subscribed {} to RSI for {} {}", user.getName(), ticker, timespan);
-      return String.format("Successfully subscribed to RSI for <code>%s %s</code>", ticker,
-          timespan);
+      return String.format(
+          "Successfully subscribed to RSI alerts for <code>%s %s</code>. You will receive an alert once the RSI goes above %d or below %d.",
+          ticker,
+          timespan,
+          AlertService.RSI_ALERT_MAX_THRESHOLD,
+          AlertService.RSI_ALERT_MIN_THRESHOLD
+      );
 
     } catch (IllegalArgumentException e) {
       return cmd.helpMessage();
