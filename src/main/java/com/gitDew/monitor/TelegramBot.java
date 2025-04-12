@@ -34,9 +34,17 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     logger.info("Update received from {}: {}", user.getFirstName(), update);
 
-    String response = commandHandler.handle(update.getMessage().getText());
+    String response = commandHandler.handle(update.getMessage().getText(), toDomainUser(user));
 
     sendResponse(user, response);
+  }
+
+  private DomainUser toDomainUser(User user) {
+    return new DomainUser(
+        user.getId(),
+        user.getFirstName(),
+        (msg) -> sendResponse(user, msg)
+    );
   }
 
   private void sendResponse(User user, String response) {
