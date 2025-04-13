@@ -35,7 +35,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     String response;
     if ("/start".equals(text)) {
-      response = "Welcome to \uD83D\uDDA5\uFE0F<b>MONItor</b>! Type <b>help</b> to get started.";
+      response = "Welcome to \uD83D\uDDA5\uFE0F<b>Moni</b>tor! Type <b>help</b> to get started.";
     } else {
       response = commandHandler.handle(text, toDomainUser(user));
     }
