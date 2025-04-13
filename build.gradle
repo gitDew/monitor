@@ -28,7 +28,6 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'com.github.polygon-io:client-jvm:v5.1.2'
     implementation 'org.telegram:telegrambots:6.0.1'
     implementation 'com.github.crazzyghost:alphavantage-java:1.7.0'
     compileOnly 'org.projectlombok:lombok'
