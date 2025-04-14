@@ -31,7 +31,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     User user = update.getMessage().getFrom();
     String text = update.getMessage().getText();
 
-    log.info("Update received from {}: {}", user.getFirstName(), update);
+    log.info("Update received from {}: {}", user.getFirstName(), text);
 
     String response;
     if ("/start".equals(text)) {

@@ -43,17 +43,7 @@ public class CommandHandler {
       Timespan timespan = Timespan.fromCode(args[1]);
       String ticker = args[2].toUpperCase();
 
-      alertService.subscribeRSI(user, ticker, timespan);
-
-      log.info("Successfully subscribed {} to RSI for {} {}", user.getName(), ticker, timespan);
-      return String.format(
-          "Successfully subscribed to RSI alerts for <code>%s %s</code>. You will receive an alert once the RSI goes above %d or below %d.",
-          ticker,
-          timespan,
-          AlertService.RSI_ALERT_MAX_THRESHOLD,
-          AlertService.RSI_ALERT_MIN_THRESHOLD
-      );
-
+      return alertService.subscribeRSI(user, ticker, timespan);
     } catch (IllegalArgumentException e) {
       return cmd.helpMessage();
     } catch (ExternalApiException e) {

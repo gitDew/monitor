@@ -6,11 +6,9 @@ import com.crazzyghost.alphavantage.parameters.Interval;
 import com.crazzyghost.alphavantage.parameters.SeriesType;
 import com.crazzyghost.alphavantage.technicalindicator.response.rsi.RSIResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
-@Primary
 public class AlphaVantageService implements FinancialApi {
 
   private final AlphaVantage api;
@@ -38,6 +36,12 @@ public class AlphaVantageService implements FinancialApi {
       throw new ExternalApiException(response.getErrorMessage());
     }
     return response.getIndicatorUnits().get(0).getValue();
+  }
+
+  @Override
+  public boolean isSupportedSymbol(String symbol) {
+    // TODO implement?
+    return true;
   }
 
   private Interval toApiInterval(Timespan timespan) {

@@ -36,6 +36,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           ALPHAVANTAGE_TOKEN: ${{ secrets.ALPHAVANTAGE_TOKEN }}
+          TWELVEDATA_TOKEN: ${{ secrets.TWELVEDATA_TOKEN }}
 
       - name: SSH and deploy
         uses: appleboy/ssh-action@v1
@@ -56,4 +57,5 @@ jobs:
               --name monitor-app-container \
               -e TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }} \
               -e ALPHAVANTAGE_TOKEN=${{ secrets.ALPHAVANTAGE_TOKEN }} \
+              -e TWELVEDATA_TOKEN=${{ secrets.TWELVEDATA_TOKEN }} \
               monitor-app

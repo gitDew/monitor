@@ -1,12 +1,15 @@
 # 🖥️ Monitor
+
 A simple market monitor & alert system built with **Spring Boot**.
 
 ## 🧠 What It Does
 
-**Monitor** allows you to subscribe to some financial indicators, and sends you alerts on Telegram once certain thresholds have been reached.
+**Monitor** allows you to subscribe to some financial indicators, and sends you alerts on Telegram
+once certain thresholds have been reached.
 
 ## 🚀 Features
 
+✅ Data from [TwelveData](https://twelvedata.com/)  
 ✅ Data from [AlphaVantage](https://www.alphavantage.co/)  
 ✅ Telegram bot integration  
 ✅ Docker-ready
@@ -34,10 +37,12 @@ Create a `.env` file in the root of your project with the following content:
 ```env
 TELEGRAM_TOKEN=your-telegram-bot-token
 ALPHAVANTAGE_TOKEN=your-alphavantage-api-key
+TWELVEDATA_TOKEN=your-twelvedata-api-key
 ```
 
-For help on how to acquire your API tokens check out [this](https://core.telegram.org/bots/features#creating-a-new-bot) and [this](https://www.alphavantage.co/support/#api-key).
-
+For help on how to acquire your API tokens check
+out [this](https://core.telegram.org/bots/features#creating-a-new-bot), [this](https://www.alphavantage.co/support/#api-key)
+and [this](https://twelvedata.com/pricing).
 
 ### 3. Run with Docker
 
