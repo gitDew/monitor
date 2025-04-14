@@ -16,6 +16,7 @@ public class AlertService {
   private static final int RSI_ALERT_MAX_THRESHOLD = 70;
 
   private final FinancialApi financialApi;
+  private final Queue<Runnable> mainQueue = new LinkedList<>();
   private final Queue<Runnable> minuteQueue = new LinkedList<>();
   private final Queue<Runnable> fiveMinuteQueue = new LinkedList<>();
   private final Queue<Runnable> fifteenMinuteQueue = new LinkedList<>();
@@ -26,51 +27,58 @@ public class AlertService {
   private final Queue<Runnable> monthlyQueue = new LinkedList<>();
 
 
-  @Scheduled(cron = "11 * * * * *")
-  public void runEveryMinute() {
-    runNextJob(minuteQueue);
-  }
-
-  private void runNextJob(Queue<Runnable> jobQueue) {
-    Runnable job = jobQueue.poll();
+  @Scheduled(fixedRate = 10000)
+  public void runMainJobQueue() {
+    Runnable job = mainQueue.poll();
     if (job != null) {
       job.run();
     }
   }
 
-  @Scheduled(cron = "10 */5 * * * *")
+  @Scheduled(cron = "0 * * * * *")
+  public void runEveryMinute() {
+    emptyIntoMainJobQueue(minuteQueue);
+  }
+
+  private void emptyIntoMainJobQueue(Queue<Runnable> q) {
+    while (!q.isEmpty()) {
+      mainQueue.add(q.poll());
+    }
+  }
+
+  @Scheduled(cron = "0 */5 * * * *")
   public void runEvery5Minutes() {
-    runNextJob(fiveMinuteQueue);
+    emptyIntoMainJobQueue(fiveMinuteQueue);
   }
 
-  @Scheduled(cron = "9 */15 * * * *")
+  @Scheduled(cron = "0 */15 * * * *")
   public void runEvery15Minutes() {
-    runNextJob(fifteenMinuteQueue);
+    emptyIntoMainJobQueue(fifteenMinuteQueue);
   }
 
-  @Scheduled(cron = "8 */30 * * * *")
+  @Scheduled(cron = "0 */30 * * * *")
   public void runEvery30Minutes() {
-    runNextJob(thirtyMinuteQueue);
+    emptyIntoMainJobQueue(thirtyMinuteQueue);
   }
 
-  @Scheduled(cron = "7 0 * * * *")
+  @Scheduled(cron = "0 0 * * * *")
   public void runEveryHour() {
-    runNextJob(hourlyQueue);
+    emptyIntoMainJobQueue(hourlyQueue);
   }
 
-  @Scheduled(cron = "6 0 0 * * *")
+  @Scheduled(cron = "0 0 0 * * *")
   public void runEveryDay() {
-    runNextJob(dailyQueue);
+    emptyIntoMainJobQueue(dailyQueue);
   }
 
-  @Scheduled(cron = "4 0 0 * * MON")
+  @Scheduled(cron = "0 0 0 * * MON")
   public void runEveryWeek() {
-    runNextJob(weeklyQueue);
+    emptyIntoMainJobQueue(weeklyQueue);
   }
 
-  @Scheduled(cron = "3 0 0 1 * *")
+  @Scheduled(cron = "0 0 0 1 * *")
   public void runEveryMonth() {
-    runNextJob(monthlyQueue);
+    emptyIntoMainJobQueue(monthlyQueue);
   }
 
   public String subscribeRSI(DomainUser user, String ticker, Timespan timespan)
