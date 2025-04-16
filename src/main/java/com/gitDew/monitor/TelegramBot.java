@@ -1,20 +1,35 @@
 package com.gitDew.monitor;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
-@RequiredArgsConstructor
 @Slf4j
+@Service
 public class TelegramBot extends TelegramLongPollingBot {
 
   private final String telegramToken;
   private final CommandHandler commandHandler;
 
+  public TelegramBot(@Value("${telegram.token}") String telegramToken,
+      CommandHandler commandHandler) {
+    this.commandHandler = commandHandler;
+    this.telegramToken = telegramToken;
+  }
+
+  @PostConstruct
+  public void init() throws TelegramApiException {
+    TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+    botsApi.registerBot(this);
+  }
 
   @Override
   public String getBotUsername() {
@@ -28,16 +43,16 @@ public class TelegramBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
-    User user = update.getMessage().getFrom();
+    DomainUser user = toDomainUser(update.getMessage().getFrom());
     String text = update.getMessage().getText();
 
-    log.info("Update received from {}: {}", user.getFirstName(), text);
+    log.info("Update received from {}: {}", user.getName(), text);
 
     String response;
     if ("/start".equals(text)) {
       response = "Welcome to \uD83D\uDDA5\uFE0F<b>Moni</b>tor! Type <b>help</b> to get started.";
     } else {
-      response = commandHandler.handle(text, toDomainUser(user));
+      response = commandHandler.handle(text, user);
     }
 
     sendResponse(user, response);
@@ -47,12 +62,12 @@ public class TelegramBot extends TelegramLongPollingBot {
     return new DomainUser(
         user.getId(),
         user.getFirstName(),
-        (msg) -> sendResponse(user, msg)
+        ResponseType.TELEGRAM
     );
   }
 
-  private void sendResponse(User user, String response) {
-    log.info("Sending message to {}: {}", user.getFirstName(), response);
+  public void sendResponse(DomainUser user, String response) {
+    log.info("Sending message to {}: {}", user.getName(), response);
     SendMessage msg = SendMessage.builder()
         .chatId(String.valueOf(user.getId()))
         .text(response)
