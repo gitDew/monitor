@@ -58,5 +58,5 @@ jobs:
               -e TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }} \
               -e ALPHAVANTAGE_TOKEN=${{ secrets.ALPHAVANTAGE_TOKEN }} \
               -e TWELVEDATA_TOKEN=${{ secrets.TWELVEDATA_TOKEN }} \
-              -v $(pwd)/tasks.json:/app/tasks.json \ 
+              -v /home/krisz/monitor/tasks.json:/app/tasks.json \ 
               monitor-app
