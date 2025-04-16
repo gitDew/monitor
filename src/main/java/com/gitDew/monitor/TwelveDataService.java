@@ -2,6 +2,8 @@ package com.gitDew.monitor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -20,13 +24,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class TwelveDataService implements FinancialApi {
 
   private static final String BASE_URL = "https://api.twelvedata.com/";
+  private final ObjectMapper objectMapper;
   private final RestTemplate restTemplate;
   private final Set<String> supportedSymbols = new HashSet<>();
   private final String token;
 
-  public TwelveDataService(@Value("${twelvedata.token}") String token) {
+  public TwelveDataService(@Value("${twelvedata.token}") String token, ObjectMapper objectMapper) {
     this.token = token;
     restTemplate = new RestTemplate();
+    this.objectMapper = objectMapper;
   }
 
   @PostConstruct
@@ -60,12 +66,33 @@ public class TwelveDataService implements FinancialApi {
         .queryParam("outputsize", 1)
         .toUriString();
 
-    RSIResponse response = restTemplate.getForObject(apiUrl, RSIResponse.class);
-    if (response != null && response.values() != null && !response.values().isEmpty()) {
-      return response.values().get(0).getRsi();
+    ResponseEntity<String> response = restTemplate.exchange(
+        apiUrl,
+        HttpMethod.GET,
+        null,
+        String.class
+    );
+
+    try {
+      RSIResponse rsiResponse = objectMapper.readValue(response.getBody(), RSIResponse.class);
+      if (rsiResponse != null) {
+        if (rsiResponse.values() != null) {
+          if (!rsiResponse.values().isEmpty()) {
+            return rsiResponse.values().get(0).getRsi();
+          }
+          log.error("TwelveData JSON: {} {}", response.getStatusCode(), response.getBody());
+          throw new ExternalApiException("API response values were empty.");
+        }
+        log.error("TwelveData JSON: {} {}", response.getStatusCode(), response.getBody());
+        throw new ExternalApiException("API response values were null.");
+      }
+      log.error("TwelveData JSON: {} {}", response.getStatusCode(), response.getBody());
+      throw new ExternalApiException("API response was null.");
+
+    } catch (JsonProcessingException e) {
+      throw new ExternalApiException("Couldn't parse the TwelveData response body json.");
     }
-    throw new ExternalApiException(
-        "Couldn't retrieve the last RSI value from the TwelveData response.");
+
   }
 
   private String toApiInterval(Timespan timespan) {

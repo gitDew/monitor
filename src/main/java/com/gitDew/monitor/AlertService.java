@@ -58,7 +58,7 @@ public class AlertService {
     try {
       lastRsi = financialApi.getLastRsi(ticker, timespan);
     } catch (ExternalApiException e) {
-      log.error(e.getMessage());
+      log.error("Couldn't fetch the last RSI from the external API:", e);
       responseService.sendResponse(user, String.format(
           "Sorry, something went wrong when trying to fetch the RSI for your subscribed alert for %s %s. The subscription has been cleared.",
           ticker, timespan));
