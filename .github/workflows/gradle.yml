@@ -30,6 +30,7 @@ jobs:
           
           docker run -d \
             --name monitor-app-container \
+            --restart unless-stopped \
             -e TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }} \
             -e ALPHAVANTAGE_TOKEN=${{ secrets.ALPHAVANTAGE_TOKEN }} \
             -e TWELVEDATA_TOKEN=${{ secrets.TWELVEDATA_TOKEN }} \
