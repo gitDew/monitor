@@ -1,0 +1,3 @@
+services:
+  yfinance-svc:
+    build: ./yfinance-svc

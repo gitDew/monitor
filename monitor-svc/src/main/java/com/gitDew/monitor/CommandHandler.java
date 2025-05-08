@@ -47,7 +47,7 @@ public class CommandHandler {
     } catch (IllegalArgumentException e) {
       return cmd.helpMessage();
     } catch (ExternalApiException e) {
-      log.error("Error trying to fetch the RSI data from the API: {}", e.getMessage());
+      log.error("Error trying to fetch the RSI data from the API: ", e);
       return "Something went wrong trying to fetch the RSI data. Sorry!";
     }
   }
