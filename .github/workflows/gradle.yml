@@ -23,10 +23,10 @@ jobs:
 
       - name: Build & deploy
         env:
-          - TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
-          - ALPHAVANTAGE_TOKEN=${{ secrets.ALPHAVANTAGE_TOKEN }}
-          - TWELVEDATA_TOKEN=${{ secrets.TWELVEDATA_TOKEN }}
-          - YFINANCE_SVC_URL=${{ secrets.YFINANCE_SVC_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          ALPHAVANTAGE_TOKEN: ${{ secrets.ALPHAVANTAGE_TOKEN }}
+          TWELVEDATA_TOKEN: ${{ secrets.TWELVEDATA_TOKEN }}
+          YFINANCE_SVC_URL: ${{ secrets.YFINANCE_SVC_URL }}
         run: |
           docker compose down
           docker compose up -d --build
