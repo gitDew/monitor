@@ -49,6 +49,9 @@ def rsi_endpoint():
             interval = "1d"
         rsi_value = get_latest_rsi(symbol, interval)
         return jsonify({"symbol": symbol.upper(), "rsi": round(rsi_value, 2)})
+    except ValueError as e:
+        if "no data" in str(e).lower():
+            return jsonify({"error": str(e)}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

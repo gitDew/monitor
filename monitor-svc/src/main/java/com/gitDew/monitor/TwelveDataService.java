@@ -20,7 +20,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Slf4j
-@Primary
 public class TwelveDataService implements FinancialApi {
 
   private static final String BASE_URL = "https://api.twelvedata.com/";

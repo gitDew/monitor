@@ -1,3 +1,13 @@
 services:
   yfinance-svc:
     build: ./yfinance-svc
+  monitor-svc:
+    build: ./monitor-svc
+    restart: unless-stopped
+    volumes:
+      - /home/homepi/tasks.json:/app/tasks.json
+    environment:
+      - ALPHAVANTAGE_TOKEN=${ALPHAVANTAGE_TOKEN}
+      - TWELVEDATA_TOKEN=${TWELVEDATA_TOKEN}
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - YFINANCE_SVC_URL=${YFINANCE_SVC_URL}
