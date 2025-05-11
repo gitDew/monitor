@@ -1,6 +1,7 @@
 package com.gitDew.monitor;
 
 import jakarta.annotation.PostConstruct;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 
   private final String telegramToken;
   private final CommandHandler commandHandler;
+  private final DomainUserRepository domainUserRepository;
 
   public TelegramBot(@Value("${telegram.token}") String telegramToken,
-      CommandHandler commandHandler) {
+      CommandHandler commandHandler, DomainUserRepository domainUserRepository) {
     this.commandHandler = commandHandler;
     this.telegramToken = telegramToken;
+    this.domainUserRepository = domainUserRepository;
   }
 
   @PostConstruct
@@ -59,11 +62,13 @@ public class TelegramBot extends TelegramLongPollingBot {
   }
 
   private DomainUser toDomainUser(User user) {
-    return new DomainUser(
-        user.getId(),
-        user.getFirstName(),
-        ResponseType.TELEGRAM
-    );
+    return domainUserRepository.findById(user.getId()).orElse(domainUserRepository.save(
+        new DomainUser(
+            user.getId(),
+            user.getFirstName(),
+            ResponseType.TELEGRAM
+        )
+    ));
   }
 
   public void sendResponse(DomainUser user, String response) {

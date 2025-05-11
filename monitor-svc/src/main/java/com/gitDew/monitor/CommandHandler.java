@@ -47,7 +47,7 @@ public class CommandHandler {
     StringBuilder sb = new StringBuilder();
     sb.append("Currently subscribed alerts: \n\n");
     for (Task task : tasksForUser) {
-      sb.append(String.format("<code>%s %s</code>\n", task.getTicker(), task.getTimespan()));
+      sb.append(String.format("<code>%s %s %s</code>\n", task.getTaskType(), task.getTicker(), task.getTimespan()));
     }
     return sb.toString();
   }

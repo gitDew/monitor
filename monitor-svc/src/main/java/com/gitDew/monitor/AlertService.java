@@ -20,20 +20,11 @@ public class AlertService {
   private final FinancialApi financialApi;
   private final TaskRepository taskRepository;
 
-  private final Queue<Task> mainQueue = new LinkedList<>();
-  private final Queue<Task> minuteQueue = new LinkedList<>();
-  private final Queue<Task> fiveMinuteQueue = new LinkedList<>();
-  private final Queue<Task> fifteenMinuteQueue = new LinkedList<>();
-  private final Queue<Task> thirtyMinuteQueue = new LinkedList<>();
-  private final Queue<Task> hourlyQueue = new LinkedList<>();
-  private final Queue<Task> dailyQueue = new LinkedList<>();
-  private final Queue<Task> weeklyQueue = new LinkedList<>();
-  private final Queue<Task> monthlyQueue = new LinkedList<>();
-
+  private final Queue<Task> taskQueue = new LinkedList<>();
 
   @Scheduled(fixedRate = 10000)
   public void runMainJobQueue() {
-    Task task = mainQueue.poll();
+    Task task = taskQueue.poll();
     if (task != null) {
       runTask(task);
     }
@@ -54,7 +45,7 @@ public class AlertService {
       taskRepository.delete(task);
       responseService.sendResponse(task.getUser(), String.format(
           "Sorry, something went wrong when trying to fetch the RSI for your subscribed alert for %s %s. The subscription has been cleared.",
-          task.getTicker(),task.getTimespan()));
+          task.getTicker(), task.getTimespan()));
       return;
     }
 
@@ -69,68 +60,50 @@ public class AlertService {
       return;
     }
 
-    log.info("RSI checked on behalf of {} for {} {}: {}. Re-adding to queue.", task.getUser().getName(),
+    log.info("RSI checked on behalf of {} for {} {}: {}. Re-adding to queue.",
+        task.getUser().getName(),
         task.getTicker(), task.getTimespan(), lastRsi);
-    getTimespanQueue(task.getTimespan()).add(task);
-  }
-
-  private Queue<Task> getTimespanQueue(Timespan timespan) {
-    return switch (timespan) {
-      case MINUTE -> minuteQueue;
-      case MINUTE_5 -> fiveMinuteQueue;
-      case MINUTE_15 -> fifteenMinuteQueue;
-      case MINUTE_30 -> thirtyMinuteQueue;
-      case HOUR -> hourlyQueue;
-      case DAY -> dailyQueue;
-      case WEEK -> weeklyQueue;
-      case MONTH -> monthlyQueue;
-    };
   }
 
   @Scheduled(cron = "0 * * * * *")
   public void runEveryMinute() {
-    emptyIntoMainJobQueue(minuteQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.MINUTE));
   }
 
-  private void emptyIntoMainJobQueue(Queue<Task> q) {
-    while (!q.isEmpty()) {
-      mainQueue.add(q.poll());
-    }
-  }
 
   @Scheduled(cron = "0 */5 * * * *")
   public void runEvery5Minutes() {
-    emptyIntoMainJobQueue(fiveMinuteQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.MINUTE_5));
   }
 
   @Scheduled(cron = "0 */15 * * * *")
   public void runEvery15Minutes() {
-    emptyIntoMainJobQueue(fifteenMinuteQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.MINUTE_15));
   }
 
   @Scheduled(cron = "0 */30 * * * *")
   public void runEvery30Minutes() {
-    emptyIntoMainJobQueue(thirtyMinuteQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.MINUTE_30));
   }
 
   @Scheduled(cron = "0 0 * * * *")
   public void runEveryHour() {
-    emptyIntoMainJobQueue(hourlyQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.HOUR));
   }
 
   @Scheduled(cron = "0 0 0 * * *")
   public void runEveryDay() {
-    emptyIntoMainJobQueue(dailyQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.DAY));
   }
 
   @Scheduled(cron = "0 0 0 * * MON")
   public void runEveryWeek() {
-    emptyIntoMainJobQueue(weeklyQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.WEEK));
   }
 
   @Scheduled(cron = "0 0 0 1 * *")
   public void runEveryMonth() {
-    emptyIntoMainJobQueue(monthlyQueue);
+    taskQueue.addAll(taskRepository.findAllByTimespan(Timespan.MONTH));
   }
 
   public String subscribeRSI(DomainUser user, String ticker, Timespan timespan)
@@ -139,8 +112,7 @@ public class AlertService {
       return String.format("Sorry, symbol %s is not supported.", ticker);
     }
 
-    Task newTask = taskRepository.save(new Task(user, TaskType.RSI, ticker, timespan));
-    getTimespanQueue(timespan).add(newTask);
+    taskRepository.save(new Task(user, TaskType.RSI, ticker, timespan));
 
     log.info("Successfully subscribed {} to RSI for {} {}", user.getName(), ticker, timespan);
     return String.format(
@@ -151,14 +123,5 @@ public class AlertService {
         RSI_ALERT_MIN_THRESHOLD
     );
 
-  }
-
-  @PostConstruct
-  private void loadTasks() {
-    List<Task> tasksInRepo = taskRepository.findAll();
-    for (Task task : tasksInRepo) {
-      getTimespanQueue(task.getTimespan()).add(task);
-    }
-    log.info("{} tasks loaded from database.", tasksInRepo.size());
   }
 }
