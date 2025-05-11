@@ -1,13 +1,29 @@
 services:
   yfinance-svc:
     build: ./yfinance-svc
+    restart: unless-stopped
   monitor-svc:
     build: ./monitor-svc
     restart: unless-stopped
-    volumes:
-      - /home/homepi/tasks.json:/app/tasks.json
     environment:
-      - ALPHAVANTAGE_TOKEN=${ALPHAVANTAGE_TOKEN}
-      - TWELVEDATA_TOKEN=${TWELVEDATA_TOKEN}
-      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
-      - YFINANCE_SVC_URL=${YFINANCE_SVC_URL}
+      ALPHAVANTAGE_TOKEN: ${ALPHAVANTAGE_TOKEN}
+      TWELVEDATA_TOKEN: ${TWELVEDATA_TOKEN}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      YFINANCE_SVC_URL: ${YFINANCE_SVC_URL}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

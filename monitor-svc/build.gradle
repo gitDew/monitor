@@ -32,12 +32,11 @@ dependencies {
     implementation 'com.github.crazzyghost:alphavantage-java:1.7.0'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"  // Add Kotlin stdlib
+    implementation("org.postgresql:postgresql:42.7.5")
 }
 
 tasks.named('test') {

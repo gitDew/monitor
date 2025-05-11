@@ -1,13 +1,8 @@
 package com.gitDew.monitor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,13 +14,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AlertService {
 
-  public static final String FILENAME = "tasks.json";
   private static final int RSI_ALERT_MIN_THRESHOLD = 30;
   private static final int RSI_ALERT_MAX_THRESHOLD = 70;
   private final ResponseService responseService;
   private final FinancialApi financialApi;
-  private final ObjectMapper objectMapper;
-
+  private final TaskRepository taskRepository;
 
   private final Queue<Task> mainQueue = new LinkedList<>();
   private final Queue<Task> minuteQueue = new LinkedList<>();
@@ -47,38 +40,38 @@ public class AlertService {
   }
 
   private void runTask(Task task) {
-    switch (task.taskType()) {
-      case RSI -> checkRSI(task.user(), task.params().get("ticker"),
-          Timespan.fromCode(task.params().get("timespan")));
+    switch (task.getTaskType()) {
+      case RSI -> checkRSI(task);
     }
   }
 
-  private void checkRSI(DomainUser user, String ticker, Timespan timespan) {
+  private void checkRSI(Task task) {
     Double lastRsi;
     try {
-      lastRsi = financialApi.getLastRsi(ticker, timespan);
+      lastRsi = financialApi.getLastRsi(task.getTicker(), task.getTimespan());
     } catch (ExternalApiException e) {
       log.error("Couldn't fetch the last RSI from the external API:", e);
-      responseService.sendResponse(user, String.format(
+      taskRepository.delete(task);
+      responseService.sendResponse(task.getUser(), String.format(
           "Sorry, something went wrong when trying to fetch the RSI for your subscribed alert for %s %s. The subscription has been cleared.",
-          ticker, timespan));
+          task.getTicker(),task.getTimespan()));
       return;
     }
 
     if (Double.compare(lastRsi, RSI_ALERT_MIN_THRESHOLD) < 0 || Double.compare(lastRsi,
         RSI_ALERT_MAX_THRESHOLD) > 0) {
-      responseService.sendResponse(user,
+      taskRepository.delete(task);
+      responseService.sendResponse(task.getUser(),
           String.format(
               "@%s \uD83D\uDEA8 <b>Alert triggered</b>: RSI for <code>%s %s</code> is at %.2f.\n\nAlert subscription cleared.",
-              user.getName(), ticker, timespan,
+              task.getUser().getName(), task.getTicker(), task.getTimespan(),
               lastRsi));
       return;
     }
 
-    log.info("RSI checked on behalf of {} for {} {}: {}. Re-adding to queue.", user.getName(),
-        ticker, timespan, lastRsi);
-    getTimespanQueue(timespan).add(
-        new Task(user, TaskType.RSI, Map.of("ticker", ticker, "timespan", timespan.toString())));
+    log.info("RSI checked on behalf of {} for {} {}: {}. Re-adding to queue.", task.getUser().getName(),
+        task.getTicker(), task.getTimespan(), lastRsi);
+    getTimespanQueue(task.getTimespan()).add(task);
   }
 
   private Queue<Task> getTimespanQueue(Timespan timespan) {
@@ -103,31 +96,6 @@ public class AlertService {
     while (!q.isEmpty()) {
       mainQueue.add(q.poll());
     }
-  }
-
-  @PostConstruct
-  public void loadFromJson() throws IOException {
-    File file = new File(FILENAME);
-
-    if (file.exists()) {
-      List<Task> tasks = objectMapper.readValue(file,
-          objectMapper.getTypeFactory().constructCollectionType(
-              List.class, Task.class));
-      mainQueue.addAll(tasks);
-      log.info("Loaded {} tasks from {}", tasks.size(), FILENAME);
-    }
-  }
-
-  @PreDestroy
-  public void saveToJson() throws IOException {
-    for (Timespan timespan : Timespan.values()) {
-      emptyIntoMainJobQueue(getTimespanQueue(timespan));
-    }
-
-    File file = new File(FILENAME);
-
-    objectMapper.writeValue(file, mainQueue);
-    log.info("Tasks saved to {}", FILENAME);
   }
 
   @Scheduled(cron = "0 */5 * * * *")
@@ -171,8 +139,8 @@ public class AlertService {
       return String.format("Sorry, symbol %s is not supported.", ticker);
     }
 
-    getTimespanQueue(timespan).add(
-        new Task(user, TaskType.RSI, Map.of("ticker", ticker, "timespan", timespan.toString())));
+    Task newTask = taskRepository.save(new Task(user, TaskType.RSI, ticker, timespan));
+    getTimespanQueue(timespan).add(newTask);
 
     log.info("Successfully subscribed {} to RSI for {} {}", user.getName(), ticker, timespan);
     return String.format(
@@ -183,5 +151,14 @@ public class AlertService {
         RSI_ALERT_MIN_THRESHOLD
     );
 
+  }
+
+  @PostConstruct
+  private void loadTasks() {
+    List<Task> tasksInRepo = taskRepository.findAll();
+    for (Task task : tasksInRepo) {
+      getTimespanQueue(task.getTimespan()).add(task);
+    }
+    log.info("{} tasks loaded from database.", tasksInRepo.size());
   }
 }
