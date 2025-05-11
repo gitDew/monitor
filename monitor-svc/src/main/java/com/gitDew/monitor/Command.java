@@ -8,6 +8,7 @@ public abstract class Command {
     return switch (commandEnum) {
       case HELP -> new HelpCommand();
       case RSI -> new RsiCommand();
+      case ALERTS -> new AlertsCommand();
     };
   }
 
@@ -65,4 +66,16 @@ public abstract class Command {
   }
 
 
+  private static class AlertsCommand extends Command {
+
+    @Override
+    public CommandEnum getCommandTag() {
+      return CommandEnum.ALERTS;
+    }
+
+    @Override
+    public String helpMessage() {
+      return "Lists all currently subscribed to alerts.";
+    }
+  }
 }
