@@ -27,6 +27,9 @@ jobs:
           ALPHAVANTAGE_TOKEN: ${{ secrets.ALPHAVANTAGE_TOKEN }}
           TWELVEDATA_TOKEN: ${{ secrets.TWELVEDATA_TOKEN }}
           YFINANCE_SVC_URL: ${{ secrets.YFINANCE_SVC_URL }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           docker compose down
           docker compose up -d --build
