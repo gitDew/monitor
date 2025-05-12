@@ -24,14 +24,15 @@ def get_latest_rsi(symbol: str, interval: str):
         raise ValueError("No data returned. Check the ticker or network.")
 
     close = data["Close"]
+    print(close)
     delta = close.diff()
 
     gain = delta.where(delta > 0, 0.0)
     loss = -delta.where(delta < 0, 0.0)
 
     period = 14
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
+    avg_gain = gain.ewm(alpha=1/period, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/period, adjust=False).mean()
 
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
