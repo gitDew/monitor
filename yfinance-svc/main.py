@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, request, jsonify
 import yfinance as yf
 
@@ -24,7 +25,7 @@ def get_latest_rsi(symbol: str, interval: str):
         raise ValueError("No data returned. Check the ticker or network.")
 
     close = data["Close"]
-    print(close)
+    logging.log(logging.DEBUG, data)
     delta = close.diff()
 
     gain = delta.where(delta > 0, 0.0)
@@ -49,6 +50,7 @@ def rsi_endpoint():
         if not interval:
             interval = "1d"
         rsi_value = get_latest_rsi(symbol, interval)
+        logging.log(logging.DEBUG, "RSI: " + str(rsi_value))
         return jsonify({"symbol": symbol.upper(), "rsi": round(rsi_value, 2)})
     except ValueError as e:
         if "no data" in str(e).lower():
@@ -57,5 +59,10 @@ def rsi_endpoint():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    logging.basicConfig(level=logging.DEBUG)
 
+    file_handler = logging.FileHandler('app.log')
+    file_handler.setLevel(logging.DEBUG)  # capture all messages in file
+
+    logging.getLogger().addHandler(file_handler)
+    app.run(host="0.0.0.0", port=5000)
